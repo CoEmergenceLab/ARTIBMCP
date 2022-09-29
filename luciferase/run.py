@@ -329,6 +329,8 @@ def main():
                 cv2.imshow("Camera image", img)  # show image
                 # draw frame using opengl and send it to Syphon so Max can grab it
                 syphon_luciferase_server.draw_and_send(imgLuciferaseCvt)
+                out2 = cv2.cvtColor(out, cv2.COLOR_GRAY2RGB)
+                syphon_luciferasecv_server.draw_and_send(out2)
 
             key = cv2.waitKey(1) & 0xFF
             if key == 27:
