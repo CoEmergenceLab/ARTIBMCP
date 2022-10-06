@@ -169,7 +169,7 @@ def getGreenPercentage(img):
 
     # Print the color percent, use 2 figures past the decimal point
     finalPercent = np.round(colorPercent, 2)
-    print("gfp pixel percentage:", finalPercent)
+    print("green pixel percentage:", finalPercent)
 
     return finalPercent
 
