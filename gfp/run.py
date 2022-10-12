@@ -7,7 +7,7 @@
 6. resize image to proper size for ml model
 7. show image to model and get result (e.g. cluster id and response message)
 8. perform contour detection & analysis
-9. perfrom luminosity analysis
+9. perform luminosity analysis
 10. send image to Max via Syphon
 11. send response message, contour analysis and luminosity analysis via OSC
 """

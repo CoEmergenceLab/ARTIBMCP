@@ -247,6 +247,7 @@ def main():
                 # ==== Load ML model and perform inference ==== #
                 # (make sure image is resized/cropped correctly for the model, e.g. 224x224 for VGG16)
 
+                # then generate a response
                 ml_bundle_dict = {}  # for OSC bundle for ml response
 
                 # ==== Perform contour detection & analysis ==== #
