@@ -19,6 +19,12 @@ import os
 import argparse
 import numpy as np
 import sys
+import pickle
+# Importing the model and methods for transfer learning
+from keras.applications.vgg16 import VGG16
+from keras.models import Model
+from keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.preprocessing.image import img_to_array, load_img
 from pythonosc import udp_client, osc_message_builder, osc_bundle_builder
 
 sys.path.insert(0, "../utils/")  # adding utils folder to the system path
@@ -252,6 +258,45 @@ def sendResponses(bundle_dict):
     # send the bundle
     oscClient.send(bundle.build())
 
+def extract_features(target_file):
+    """
+    This function preprocesses the input target image
+    and loades the VGG 16 model to extract features.
+    return: Extracted features with dimenions 4096
+    """
+    # DL model for transfer learning
+    model = VGG16()
+    model = Model(inputs = model.inputs, outputs = model.layers[-2].output)
+    # load the image as a 224x224 array
+    img = load_img(target_file, target_size=(224,224))
+    # convert from image to numpy array
+    img = img_to_array(img)
+    # reshape the data for the model reshape(num_of_samples, dim 1, dim 2, channels)
+    reshaped_img = img.reshape(1,224,224,3)
+    # prepare image for model
+    imgx = preprocess_input(reshaped_img)
+    # get the feature vector
+    features = model.predict(imgx, use_multiprocessing=True)
+    return features
+
+def preprocess_input_img_for_kmeans(input_target_img_path):
+    """
+    This function uses the extract features function to preprocess
+    and extract the features from the target input image and reduces
+    the high dimensional features (4096) to 50.
+    return: Reduced features with dimensions 50
+    """
+    # Extracting the features from the target input image
+    img_feat = extract_features(input_target_img_path)
+    # Loading PCA pkl file
+    pca_pkl = 'kmeans_thermal.pkl'
+    pca = pickle.load(open(pca_pkl, 'rb'))
+    # Reducing high dimensionality
+    reduced_feat = pca.transform(img_feat)
+    return reduced_feat
+
+
+
 
 def main():
     prevTime = 0  # will store last time capture time updated
@@ -367,9 +412,23 @@ def main():
                     # display_temperature_c(img, max_c, maxLoc, (0, 0, 255))
 
                     # ==== Load ML model and perform inference ==== #
+                    model_pkl_file = 'kmeans_thermal.pkl'
+                    # Loading model
+                    kmeans_model = pickle.load(
+                        open(model_pkl_file, 'rb')
+                    )
+                    # Preprocessing target input image
+                    preprocessed_feat = preprocess_input_img_for_kmeans(
+                        img
+                    )
+                    # Generate prediction cluster ID
+                    cluster_id_prediction = kmeans_model.predict(
+                        preprocessed_feat
+                    )
+
                     # (make sure image is resized/cropped correctly for the model, e.g. 224x224 for VGG16)
 
-                    ml_bundle_dict = {}  # for OSC bundle for ml response
+                    ml_bundle_dict = {img: cluster_id_prediction[0]}  # for OSC bundle for ml response
 
                     # ==== Perform contour detection & analysis ==== #
                     # blur & threshold
