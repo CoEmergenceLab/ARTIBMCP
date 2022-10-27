@@ -34,11 +34,12 @@ from sklearn import (
     manifold,
     pipeline,
 )
-
+from sklearn import preprocessing
 
 sys.path.insert(0, "../utils/")  # adding utils folder to the system path
 import Syphon
 import glfw
+import random
 
 def loadImg(s, read_as_float32=False, gray=False):
     if read_as_float32:
@@ -193,17 +194,17 @@ def main():
 
     # OSC addresses
     OSC_ADDRESSES = (
-        "/luciferase/plate/contour",
-        "/luciferase/plate/luminosity",
-        "/luciferase/response/sound/buffers",
-        "/luciferase/response/sound/pitch",
-        "/luciferase/response/sound/xpos",
-        "/luciferase/response/sound/ypos",
-        "/luciferase/response/sound/chopper",
-        "/luciferase/response/control/water",
-        "/luciferase/response/control/peg",
-        "/luciferase/response/control/aba",
-        "/luciferase/response/cluster",
+        "/gfp/plate/contour",
+        "/gfp/plate/luminosity",
+        "/gfp/response/sound/buffers",
+        "/gfp/response/sound/pitch",
+        "/gfp/response/sound/xpos",
+        "/gfp/response/sound/ypos",
+        "/gfp/response/sound/chopper",
+        "/gfp/response/control/water",
+        "/gfp/response/control/peg",
+        "/gfp/response/control/aba",
+        "/gfp/response/cluster",
     )
 
     # use Python logging
@@ -260,12 +261,63 @@ def main():
                 model_vgg16 = pickle.load(open("./models/vgg16.pkl", "rb"))
                 pca_model = pickle.load(open("./models/pca.pkl", "rb"))
                 x1,y1 = process_test_image(target,pca_model)
-                model_vgg16.predict([[x1,y1]])
+                cluster_id_prediction = model_vgg16.predict(np.array([x1,y1]).reshape((1,-1)))
+                cluster_distance = min(preprocessing.normalize(model_vgg16.transform(np.array([x1,y1]).reshape((1,-1))))[0])
                 # (make sure image is resized/cropped correctly for the model, e.g. 224x224 for VGG16)
-
+              
                 # then generate a response
-                ml_bundle_dict = {}  # for OSC bundle for ml response
-
+              
+                ml_bundle_dict = {
+                    "cluster": {
+                        "address": OSC_ADDRESSES[10],
+                        "arguments": [
+                            [cluster_id_prediction[0], "i"],
+                            [cluster_distance, "f"],
+                        ],
+                    },
+                    "buffers": {
+                        "address": OSC_ADDRESSES[2],
+                        "arguments": [
+                            [random.randint(1, 17), "i"],
+                            [random.randint(1, 17), "i"],
+                        ],
+                    },
+                    "pitch": {
+                        "address": OSC_ADDRESSES[3],
+                        "arguments": [[random.random(), "f"]],
+                    },
+                    "xpos": {
+                        "address": OSC_ADDRESSES[4],
+                        "arguments": [[random.random(), "f"], [random.random(), "f"]],
+                    },
+                    "ypos": {
+                        "address": OSC_ADDRESSES[5],
+                        "arguments": [[random.random(), "f"], [random.random(), "f"]],
+                    },
+                    "chopper": {
+                        "address": OSC_ADDRESSES[6],
+                        "arguments": [[random.random(), "f"], [random.random(), "f"]],
+                    },
+                    "water": {
+                        "address": OSC_ADDRESSES[7],
+                        "arguments": [
+                            [random.random(), "f"],
+                            [random.randint(0, 3), "i"],
+                        ],
+                    },
+                    "peg": {
+                        "address": OSC_ADDRESSES[8],
+                        "arguments": [
+                            [random.random(), "f"],
+                            [random.randint(0, 3), "i"],
+                        ],
+                    },
+                    "aba": {
+                        "address": OSC_ADDRESSES[9],
+                        "arguments": [[random.random(), "f"]],
+                    },
+                }
+                sendContours(ml_bundle_dict)
                 # ==== Perform contour detection & analysis ==== #
                 # resize image for Syphon
                 imgLuciferaseCV = cv2.resize(
