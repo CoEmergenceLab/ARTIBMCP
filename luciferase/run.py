@@ -310,7 +310,7 @@ def main():
                     img: cluster_id_prediction[0]
                 }  # for OSC bundle for ml response
 
-                cluster_distance = ""
+                cluster_distance = random.random()
 
                 ml_bundle_dict = {
                     "cluster": {
@@ -340,7 +340,7 @@ def main():
                         "arguments": [[random.random(), "f"], [random.random(), "f"]],
                     },
                     "chopper": {
-                        address: OSC_ADDRESSES[6],
+                        "address": OSC_ADDRESSES[6],
                         "arguments": [[random.random(), "f"], [random.random(), "f"]],
                     },
                     "water": {
