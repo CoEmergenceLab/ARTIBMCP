@@ -427,9 +427,8 @@ def main():
                     cluster_id_prediction = kmeans_model.predict(
                         preprocessed_feat
                     )
-                    cluster_distance = min(
-                        preprocessing.normalize(kmeans_model.transform(np.array([x1, y1]).reshape((1, -1))))[0])
 
+                    
                     # (make sure image is resized/cropped correctly for the model, e.g. 224x224 for VGG16)
 
                     ml_bundle_dict = {
