@@ -41,6 +41,7 @@ import Syphon
 import glfw
 import random
 
+
 def loadImg(s, read_as_float32=False, gray=False):
     if read_as_float32:
         img = cv2.imread(s).astype(np.float32) / 255
@@ -218,12 +219,8 @@ def main():
 
     # ==== Syphon setup details ==== #
     # Syphon.Server("window and syphon server name", frame size, show)
-    syphon_luciferase_server = Syphon.Server(
-        "ServerLuciferase", DIMENSIONS_MAIN, show=False
-    )
-    syphon_luciferasecv_server = Syphon.Server(
-        "ServerLuciferaseCV", DIMENSIONS_CV, show=False
-    )
+    syphon_gfp_server = Syphon.Server("ServerGFP", DIMENSIONS_MAIN, show=False)
+    syphon_gfpcv_server = Syphon.Server("ServerGFPCV", DIMENSIONS_CV, show=False)
 
     ## ========== MAIN LOOP ========== ##
     try:
@@ -250,23 +247,27 @@ def main():
                 # load image
                 img = loadImg(target)
                 # resize image for Syphon
-                imgLuciferase = cv2.resize(
-                    img, DIMENSIONS_MAIN, interpolation=cv2.INTER_AREA
-                )
+                imgGFP = cv2.resize(img, DIMENSIONS_MAIN, interpolation=cv2.INTER_AREA)
                 # opencv uses bgr so we have to convert
-                imgLuciferaseCvt = cv2.cvtColor(imgLuciferase, cv2.COLOR_BGR2RGB)
+                imgGFPCvt = cv2.cvtColor(imgGFP, cv2.COLOR_BGR2RGB)
 
                 # ==== Load ML model and perform inference ==== #
 
                 model_vgg16 = pickle.load(open("./models/vgg16.pkl", "rb"))
                 pca_model = pickle.load(open("./models/pca.pkl", "rb"))
-                x1,y1 = process_test_image(target,pca_model)
-                cluster_id_prediction = model_vgg16.predict(np.array([x1,y1]).reshape((1,-1)))[0]
-                cluster_distance = min(preprocessing.normalize(model_vgg16.transform(np.array([x1,y1]).reshape((1,-1))))[0])
+                x1, y1 = process_test_image(target, pca_model)
+                cluster_id_prediction = model_vgg16.predict(
+                    np.array([x1, y1]).reshape((1, -1))
+                )[0]
+                cluster_distance = min(
+                    preprocessing.normalize(
+                        model_vgg16.transform(np.array([x1, y1]).reshape((1, -1)))
+                    )[0]
+                )
                 # (make sure image is resized/cropped correctly for the model, e.g. 224x224 for VGG16)
-              
+
                 # then generate a response
-              
+
                 ml_bundle_dict = {
                     "cluster": {
                         "address": OSC_ADDRESSES[10],
@@ -320,11 +321,9 @@ def main():
                 sendResponses(ml_bundle_dict)
                 # ==== Perform contour detection & analysis ==== #
                 # resize image for Syphon
-                imgLuciferaseCV = cv2.resize(
-                    img, DIMENSIONS_CV, interpolation=cv2.INTER_AREA
-                )
+                imgGFPCV = cv2.resize(img, DIMENSIONS_CV, interpolation=cv2.INTER_AREA)
                 # blur & threshold
-                imgBlur = cv2.medianBlur(imgLuciferaseCV, 5)
+                imgBlur = cv2.medianBlur(imgGFPCV, 5)
                 ret, thresh = cv2.threshold(
                     imgBlur, int(args.threshold), 255, cv2.THRESH_BINARY
                 )
@@ -397,9 +396,9 @@ def main():
 
                 cv2.imshow("Camera image", img)  # show image
                 # draw frame using opengl and send it to Syphon so Max can grab it
-                syphon_luciferase_server.draw_and_send(imgLuciferaseCvt)
+                syphon_gfp_server.draw_and_send(imgGFPCvt)
                 out2 = cv2.cvtColor(out, cv2.COLOR_GRAY2RGB)
-                syphon_luciferasecv_server.draw_and_send(out2)
+                syphon_gfpcv_server.draw_and_send(out2)
 
             key = cv2.waitKey(1) & 0xFF
             if key == 27:
@@ -413,43 +412,44 @@ def main():
         print("done")
         return 0
 
-def process_test_image(img_path,pca_model):
-      try:
-            # load image setting the image size to 224 x 224
-            img = image.load_img(img_path, target_size=(224, 224))
-            # convert image to numpy array
-            x = image.img_to_array(img)
-           
-            # the image is now in an array of shape (3, 224, 224)
-            # but we need to expand it to (1, 2, 224, 224) as Keras is expecting a list of images
-            x = np.expand_dims(x, axis=0)
-            x = preprocess_input(x)
 
-            
-            model_vgg16 = applications.vgg16.VGG16(weights='imagenet', include_top=False, pooling='avg')
-           
-            # extract the features
-            features = model_vgg16.predict(x)[0]
-            # convert from Numpy to a list of values
-            features_arr = np.char.mod('%f', features)
-            feature_list =  ','.join(features_arr)
-            transformed = feature_list.split(',')
-         
-            # convert image data to float64 matrix. float64 is need for bh_sne
-            x_data = np.asarray(transformed).astype('float64')
-            x_data = x_data.reshape((1,-1))
-            # perform t-SNE
-           
-            vis_data = pca_model.transform(x_data)
+def process_test_image(img_path, pca_model):
+    try:
+        # load image setting the image size to 224 x 224
+        img = image.load_img(img_path, target_size=(224, 224))
+        # convert image to numpy array
+        x = image.img_to_array(img)
 
+        # the image is now in an array of shape (3, 224, 224)
+        # but we need to expand it to (1, 2, 224, 224) as Keras is expecting a list of images
+        x = np.expand_dims(x, axis=0)
+        x = preprocess_input(x)
 
-            # convert the results into a list of dict
-            results = []
-            return vis_data[0][0], vis_data[0][1]
-      except Exception as ex:
-            # skip all exceptions for now
-            print(ex)
-            pass
+        model_vgg16 = applications.vgg16.VGG16(
+            weights="imagenet", include_top=False, pooling="avg"
+        )
+
+        # extract the features
+        features = model_vgg16.predict(x)[0]
+        # convert from Numpy to a list of values
+        features_arr = np.char.mod("%f", features)
+        feature_list = ",".join(features_arr)
+        transformed = feature_list.split(",")
+
+        # convert image data to float64 matrix. float64 is need for bh_sne
+        x_data = np.asarray(transformed).astype("float64")
+        x_data = x_data.reshape((1, -1))
+        # perform t-SNE
+
+        vis_data = pca_model.transform(x_data)
+
+        # convert the results into a list of dict
+        results = []
+        return vis_data[0][0], vis_data[0][1]
+    except Exception as ex:
+        # skip all exceptions for now
+        print(ex)
+        pass
 
 
 if __name__ == "__main__":
