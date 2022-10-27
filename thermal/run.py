@@ -486,11 +486,11 @@ def main():
                             "arguments": [[random.random(), "f"]],
                         },
                         "temperature": {
-                            "address": OSC_ADDRESSES[10],
+                            "address": OSC_ADDRESSES[11],
                             "arguments": [[random.random(), "f"]],
                         },
                         "light": {
-                            "address": OSC_ADDRESSES[11],
+                            "address": OSC_ADDRESSES[12],
                             "arguments": [[random.randint(0,1), "i"]],
                         },
                     }
