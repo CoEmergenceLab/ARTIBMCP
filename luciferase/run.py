@@ -310,6 +310,7 @@ def main():
                     img: cluster_id_prediction[0]
                 }  # for OSC bundle for ml response
 
+                # ======= grab from sklearn =======
                 cluster_distance = random.random()
 
                 ml_bundle_dict = {
