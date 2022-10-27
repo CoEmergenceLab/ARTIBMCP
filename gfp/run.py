@@ -261,7 +261,7 @@ def main():
                 model_vgg16 = pickle.load(open("./models/vgg16.pkl", "rb"))
                 pca_model = pickle.load(open("./models/pca.pkl", "rb"))
                 x1,y1 = process_test_image(target,pca_model)
-                cluster_id_prediction = model_vgg16.predict(np.array([x1,y1]).reshape((1,-1)))
+                cluster_id_prediction = model_vgg16.predict(np.array([x1,y1]).reshape((1,-1)))[0]
                 cluster_distance = min(preprocessing.normalize(model_vgg16.transform(np.array([x1,y1]).reshape((1,-1))))[0])
                 # (make sure image is resized/cropped correctly for the model, e.g. 224x224 for VGG16)
               
@@ -271,7 +271,7 @@ def main():
                     "cluster": {
                         "address": OSC_ADDRESSES[10],
                         "arguments": [
-                            [cluster_id_prediction[0], "i"],
+                            [cluster_id_prediction, "i"],
                             [cluster_distance, "f"],
                         ],
                     },
@@ -317,7 +317,7 @@ def main():
                         "arguments": [[random.random(), "f"]],
                     },
                 }
-                sendContours(ml_bundle_dict)
+                sendResponses(ml_bundle_dict)
                 # ==== Perform contour detection & analysis ==== #
                 # resize image for Syphon
                 imgLuciferaseCV = cv2.resize(
