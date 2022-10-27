@@ -20,12 +20,14 @@ import argparse
 import numpy as np
 import sys
 import pickle
+import random
 # Importing the model and methods for transfer learning
 from keras.applications.vgg16 import VGG16
 from keras.models import Model
 from keras.applications.vgg16 import preprocess_input
 from tensorflow.keras.preprocessing.image import img_to_array, load_img
 from pythonosc import udp_client, osc_message_builder, osc_bundle_builder
+
 
 sys.path.insert(0, "../utils/")  # adding utils folder to the system path
 import Syphon
@@ -315,6 +317,8 @@ def main():
         "/thermal/response/control/peg",
         "/thermal/response/control/aba",
         "/thermal/response/cluster",
+        "/thermal/response/control/temperature",
+        "/thermal/response/control/light",
     )
 
     ctx = POINTER(uvc_context)()
@@ -418,9 +422,7 @@ def main():
                         open(model_pkl_file, 'rb')
                     )
                     # Preprocessing target input image
-                    preprocessed_feat = preprocess_input_img_for_kmeans(
-                        img
-                    )
+                    preprocessed_feat = preprocess_input_img_for_kmeans(img)
                     # Generate prediction cluster ID
                     cluster_id_prediction = kmeans_model.predict(
                         preprocessed_feat
@@ -428,7 +430,72 @@ def main():
 
                     # (make sure image is resized/cropped correctly for the model, e.g. 224x224 for VGG16)
 
-                    ml_bundle_dict = {img: cluster_id_prediction[0]}  # for OSC bundle for ml response
+                    ml_bundle_dict = {
+                        img: cluster_id_prediction[0]
+                    }  # for OSC bundle for ml response
+
+                    cluster_distance = random.random()
+
+                    ml_bundle_dict = {
+                        "cluster": {
+                            "address": OSC_ADDRESSES[10],
+                            "arguments": [
+                                [cluster_id_prediction[0], "i"],
+                                [cluster_distance, "f"],
+                            ],
+                        },
+                        "buffers": {
+                            "address": OSC_ADDRESSES[2],
+                            "arguments": [
+                                [random.randint(1, 17), "i"],
+                                [random.randint(1, 17), "i"],
+                            ],
+                        },
+                        "pitch": {
+                            "address": OSC_ADDRESSES[3],
+                            "arguments": [[random.random(), "f"]],
+                        },
+                        "xpos": {
+                            "address": OSC_ADDRESSES[4],
+                            "arguments": [[random.random(), "f"], [random.random(), "f"]],
+                        },
+                        "ypos": {
+                            "address": OSC_ADDRESSES[5],
+                            "arguments": [[random.random(), "f"], [random.random(), "f"]],
+                        },
+                        "chopper": {
+                            address: OSC_ADDRESSES[6],
+                            "arguments": [[random.random(), "f"], [random.random(), "f"]],
+                        },
+                        "water": {
+                            "address": OSC_ADDRESSES[7],
+                            "arguments": [
+                                [random.random(), "f"],
+                                [random.randint(0, 3), "i"],
+                            ],
+                        },
+                        "peg": {
+                            "address": OSC_ADDRESSES[8],
+                            "arguments": [
+                                [random.random(), "f"],
+                                [random.randint(0, 3), "i"],
+                            ],
+                        },
+                        "aba": {
+                            "address": OSC_ADDRESSES[9],
+                            "arguments": [[random.random(), "f"]],
+                        },
+                        "temperature": {
+                            "address": OSC_ADDRESSES[10],
+                            "arguments": [[random.random(), "f"]],
+                        },
+                        "light": {
+                            "address": OSC_ADDRESSES[11],
+                            "arguments": [[random.randint(0,1), "i"]],
+                        },
+                    }
+                    # for OSC bundle for ml response
+                    sendContours(ml_bundle_dict)
 
                     # ==== Perform contour detection & analysis ==== #
                     # blur & threshold
