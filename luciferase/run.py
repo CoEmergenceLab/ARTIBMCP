@@ -11,6 +11,8 @@
 10. send image to Max via Syphon
 11. send response message, contour analysis and luminosity analysis via OSC
 """
+# tensorflow 2.9.2
+# sklearn 1.13
 
 # -*- coding: utf-8 -*-
 import argparse
