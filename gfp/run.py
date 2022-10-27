@@ -203,7 +203,7 @@ def main():
         "/gfp/response/sound/chopper",
         "/gfp/response/control/water",
         "/gfp/response/control/peg",
-        "/gfp/response/control/aba",
+        "/gfp/response/control/auxin",
         "/gfp/response/cluster",
     )
 
@@ -312,7 +312,7 @@ def main():
                             [random.randint(0, 3), "i"],
                         ],
                     },
-                    "aba": {
+                    "auxin": {
                         "address": OSC_ADDRESSES[9],
                         "arguments": [[random.random(), "f"]],
                     },
