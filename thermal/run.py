@@ -26,6 +26,7 @@ from keras.applications.vgg16 import VGG16
 from keras.models import Model
 from keras.applications.vgg16 import preprocess_input
 from tensorflow.keras.preprocessing.image import img_to_array, load_img
+from sklearn.metrics.pairwise import euclidean_distances
 from pythonosc import udp_client, osc_message_builder, osc_bundle_builder
 
 
@@ -291,12 +292,27 @@ def preprocess_input_img_for_kmeans(input_target_img_path):
     # Extracting the features from the target input image
     img_feat = extract_features(input_target_img_path)
     # Loading PCA pkl file
-    pca_pkl = 'kmeans_thermal.pkl'
+    pca_pkl = 'pca_thermal.pkl'
     pca = pickle.load(open(pca_pkl, 'rb'))
     # Reducing high dimensionality
     reduced_feat = pca.transform(img_feat)
     return reduced_feat
-
+def find_cluster_distance(preprocessed_feat, kmeans_model):
+    """
+    This function returns the minimum normalize distance between
+    predicted cluster and the respective centroid.
+    return: Reduced features with dimensions 50
+    """
+    # Flattens the 2d array
+    flat_preproc_feat = preprocessed_feat.flatten()
+    # Gets centroids
+    centroids = kmeans_model.cluster_centers_
+    # Calculating euclidean distance
+    euc_res = euclidean_distances(np.array(centroids), np.array([flat_preproc_feat]))
+    # Normalizing distances
+    normlaized_res = (1/euc_res)/((1/euc_res).sum())
+    # Returning the minimum distance
+    return min(normlaized_res)[0]
 
 
 
@@ -435,7 +451,7 @@ def main():
                         img: cluster_id_prediction[0]
                     }  # for OSC bundle for ml response
 
-                    cluster_distance = random.random()
+                    cluster_distance = find_cluster_distance(preprocessed_feat, kmeans_model)
 
                     ml_bundle_dict = {
                         "cluster": {
