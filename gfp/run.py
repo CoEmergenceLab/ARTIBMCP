@@ -253,72 +253,76 @@ def main():
 
                 # ==== Load ML model and perform inference ==== #
 
-                model_vgg16 = pickle.load(open("./models/vgg16.pkl", "rb"))
+                model_k = pickle.load(open("./models/vgg16.pkl", "rb"))
                 pca_model = pickle.load(open("./models/pca.pkl", "rb"))
+                avg_dist = pickle.load(open("./models/vgg16.pkl", "rb"))
                 x1, y1 = process_test_image(target, pca_model)
-                cluster_id_prediction = model_vgg16.predict(
+                cluster_id_prediction = model_k.predict(
                     np.array([x1, y1]).reshape((1, -1))
                 )[0]
-                cluster_distance = min(
+                cluster_distance = min(   
                     preprocessing.normalize(
-                        model_vgg16.transform(np.array([x1, y1]).reshape((1, -1)))
+                        model_k.transform(np.array([x1, y1]).reshape((1, -1)))
                     )[0]
                 )
+                X_dist = model_k.transform(np.array([x1,y1]).reshape((1,-1)))**2
+
+                dist = X_dist.sum(axis=1).round(2)[0]
                 # (make sure image is resized/cropped correctly for the model, e.g. 224x224 for VGG16)
 
                 # then generate a response
-
-                ml_bundle_dict = {
-                    "cluster": {
-                        "address": OSC_ADDRESSES[10],
-                        "arguments": [
-                            [cluster_id_prediction, "i"],
-                            [cluster_distance, "f"],
-                        ],
-                    },
-                    "buffers": {
-                        "address": OSC_ADDRESSES[2],
-                        "arguments": [
-                            [random.randint(1, 17), "i"],
-                            [random.randint(1, 17), "i"],
-                        ],
-                    },
-                    "pitch": {
-                        "address": OSC_ADDRESSES[3],
-                        "arguments": [[random.random(), "f"]],
-                    },
-                    "xpos": {
-                        "address": OSC_ADDRESSES[4],
-                        "arguments": [[random.random(), "f"], [random.random(), "f"]],
-                    },
-                    "ypos": {
-                        "address": OSC_ADDRESSES[5],
-                        "arguments": [[random.random(), "f"], [random.random(), "f"]],
-                    },
-                    "chopper": {
-                        "address": OSC_ADDRESSES[6],
-                        "arguments": [[random.random(), "f"], [random.random(), "f"]],
-                    },
-                    "water": {
-                        "address": OSC_ADDRESSES[7],
-                        "arguments": [
-                            [random.random(), "f"],
-                            [random.randint(0, 3), "i"],
-                        ],
-                    },
-                    "peg": {
-                        "address": OSC_ADDRESSES[8],
-                        "arguments": [
-                            [random.random(), "f"],
-                            [random.randint(0, 3), "i"],
-                        ],
-                    },
-                    "auxin": {
-                        "address": OSC_ADDRESSES[9],
-                        "arguments": [[random.random(), "f"]],
-                    },
-                }
-                sendResponses(ml_bundle_dict)
+                if avg_dist[cluster_id_prediction]<=dist:
+                    ml_bundle_dict = {
+                        "cluster": {
+                            "address": OSC_ADDRESSES[10],
+                            "arguments": [
+                                [cluster_id_prediction, "i"],
+                                [cluster_distance, "f"],
+                            ],
+                        },
+                        "buffers": {
+                            "address": OSC_ADDRESSES[2],
+                            "arguments": [
+                                [random.randint(1, 17), "i"],
+                                [random.randint(1, 17), "i"],
+                            ],
+                        },
+                        "pitch": {
+                            "address": OSC_ADDRESSES[3],
+                            "arguments": [[random.random(), "f"]],
+                        },
+                        "xpos": {
+                            "address": OSC_ADDRESSES[4],
+                            "arguments": [[random.random(), "f"], [random.random(), "f"]],
+                        },
+                        "ypos": {
+                            "address": OSC_ADDRESSES[5],
+                            "arguments": [[random.random(), "f"], [random.random(), "f"]],
+                        },
+                        "chopper": {
+                            "address": OSC_ADDRESSES[6],
+                            "arguments": [[random.random(), "f"], [random.random(), "f"]],
+                        },
+                        "water": {
+                            "address": OSC_ADDRESSES[7],
+                            "arguments": [
+                                [random.random(), "f"],
+                                [random.randint(0, 3), "i"],
+                            ],
+                        },
+                        "peg": {
+                            "address": OSC_ADDRESSES[8],
+                            "arguments": [
+                                [random.random(), "f"],
+                                [random.randint(0, 3), "i"],
+                            ],
+                        },
+                        "auxin": {
+                            "address": OSC_ADDRESSES[9],
+                            "arguments": [[random.random(), "f"]],
+                        },
+                    }
+                    sendResponses(ml_bundle_dict)
                 # ==== Perform contour detection & analysis ==== #
                 # resize image for Syphon
                 imgGFPCV = cv2.resize(img, DIMENSIONS_CV, interpolation=cv2.INTER_AREA)
@@ -425,12 +429,12 @@ def process_test_image(img_path, pca_model):
         x = np.expand_dims(x, axis=0)
         x = preprocess_input(x)
 
-        model_vgg16 = applications.vgg16.VGG16(
+        model_k = applications.vgg16.VGG16(
             weights="imagenet", include_top=False, pooling="avg"
         )
 
         # extract the features
-        features = model_vgg16.predict(x)[0]
+        features = model_k.predict(x)[0]
         # convert from Numpy to a list of values
         features_arr = np.char.mod("%f", features)
         feature_list = ",".join(features_arr)
