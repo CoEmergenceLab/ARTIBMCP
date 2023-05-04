@@ -1,6 +1,6 @@
 # ARTIBMCP
 
-h1 align="center">Post Natural Prototypes</h1>
+## Post Natural Prototypes
 
 There are 3 important folders that contain relevant files and documents for reference. 
 - GFP: @author Aarefa Zuzer Bhurka 
