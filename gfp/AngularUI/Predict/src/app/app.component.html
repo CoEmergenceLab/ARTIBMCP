@@ -1,0 +1,26 @@
+
+  
+
+  <mat-toolbar color="primary">
+    <span>Upload Image</span>
+    <span class="spacer"></span>
+    <button mat-raised-button color="accent" (click)="fileInput.click()">Choose File</button>
+    <input [hidden]="true" #fileInput type="file" (change)="onFileSelected($event)">
+    <button style="margin-left: 8px;" mat-raised-button color="accent" (click)="fileInput.click()">Upload Images for Learning</button>
+  </mat-toolbar>
+
+  <img id="preview" *ngIf="imageSrc" style="height: 30em; width: 50em;" [src]="imageSrc" alt="Preview">
+  <mat-card>
+
+    <mat-card-actions>
+      <button *ngIf="imageSrc" mat-raised-button color="primary" (click)="onUpload()">Get Prediction</button>
+      <span style="margin-left:10px" *ngIf="clusterId>=0">
+         Image cluster prediction: {{clusterId}}
+         Distance from centroid: 
+         
+      </span>
+    </mat-card-actions>
+  </mat-card>
+
+
+  
