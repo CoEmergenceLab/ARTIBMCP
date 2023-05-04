@@ -48,8 +48,8 @@ This code implements an unsupervised clustering algorithm using the K-means algo
 
 Step by step instruction to test the ngrok app:
 
-Start the google colab instance
-Upload the ML model pickle file and pca pickle file
-Run all the cells from the beginning, make sure to wait for the previous cell to finish its execution
-Copy the ngrok url that is generated, looks something like this: http://5ad5-35-237-28-92.ngrok-free.app
-Paste this url into any browser and test the application
+- Start the google colab instance
+- Upload the ML model pickle file and pca pickle file
+- Run all the cells from the beginning, make sure to wait for the previous cell to finish its execution
+- Copy the ngrok url that is generated, looks something like this: http://5ad5-35-237-28-92.ngrok-free.app
+- Paste this url into any browser and test the application
