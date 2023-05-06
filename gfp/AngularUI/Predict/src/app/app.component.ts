@@ -25,7 +25,8 @@ export class AppComponent {
   progress: number = 0;
 
   clusterId:number = -1;
-
+  distanceFromCluster = 0;
+  averageDistance = 0;
   constructor(private http:HttpClient){}
 
   onFileSelected(event:Event) {
@@ -66,7 +67,9 @@ export class AppComponent {
         (response:any) => {
           console.log(response);
           if(response){
-            this.clusterId = response.cluster
+            this.clusterId = response.cluster;
+            this.distanceFromCluster = response.img_dist;
+            this.averageDistance = response.threshold;
           }
 
         },

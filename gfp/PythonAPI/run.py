@@ -21,13 +21,17 @@ app = Flask(__name__)
 CORS(app)
 
 # Load the machine learning model
-with open('gfp.pkl', 'rb') as f:
+with open('../Models/kmodel.pkl', 'rb') as f:
     model = pickle.load(f)
 
-with open('pca.pkl', 'rb') as f:
+with open('../Models/pca.pkl', 'rb') as f:
     pca_model = pickle.load(f)
+    
+with open('../Models/threshold.pkl', 'rb') as f:
+    threshold = pickle.load(f)
 
-
+with open('../Models/distances.pkl', 'rb') as f:
+    distances = pickle.load(f)
 
 # Define an endpoint for the model
 @app.route('/predict', methods=['POST'])
@@ -52,9 +56,15 @@ def predict():
         np.array([x1, y1]).reshape((1, -1))
     )[0]
     print(cluster_id_prediction)
+    cluster_distance = min(   
+                    preprocessing.normalize(
+                        model.transform(np.array([x1, y1]).reshape((1, -1)))
+                    )[0]
+                )
 
+    dist = distances[0, cluster_id_prediction]
     # Return the prediction
-    return {'cluster': int(cluster_id_prediction)}
+    return {'cluster': int(cluster_id_prediction),'img_dist':dist,'threshold':threshold}
 
 
 def process_image(im):
@@ -88,7 +98,6 @@ def process_image(im):
 
         # convert the results into a list of dict
         results = []
-        print(vis_data)
         return vis_data[0][0], vis_data[0][1]
     except Exception as ex:
         # skip all exceptions for now

@@ -15,8 +15,11 @@
     <mat-card-actions>
       <button *ngIf="imageSrc" mat-raised-button color="primary" (click)="onUpload()">Get Prediction</button>
       <span style="margin-left:10px" *ngIf="clusterId>=0">
-         Image cluster prediction: {{clusterId}}
-         Distance from centroid: 
+         Image cluster prediction: {{clusterId}}<br>
+         <span [ngClass]="distanceFromCluster > averageDistance ? 'distance_red' : 'distance_green'">
+          Distance from centroid: {{distanceFromCluster}} <span *ngIf="distanceFromCluster > averageDistance"> (Not within the thresold) </span>
+         </span><br>
+         Thresold:  {{averageDistance}}
          
       </span>
     </mat-card-actions>
