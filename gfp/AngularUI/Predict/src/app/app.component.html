@@ -6,10 +6,20 @@
     <span class="spacer"></span>
     <button mat-raised-button color="accent" (click)="fileInput.click()">Choose File</button>
     <input [hidden]="true" #fileInput type="file" (change)="onFileSelected($event)">
-    <button style="margin-left: 8px;" mat-raised-button color="accent" (click)="fileInput.click()">Upload Images for Learning</button>
+    <button style="margin-left: 8px;" mat-raised-button color="accent" (click)="fileInput2.click()">Upload Images for Learning</button>
+    <input [hidden]="true" #fileInput2 type="file" (change)="onNewFileSelected($event)" multiple>
   </mat-toolbar>
 
   <img id="preview" *ngIf="imageSrc" style="height: 30em; width: 50em;" [src]="imageSrc" alt="Preview">
+  
+
+    <mat-grid-list cols="5" rowHeight="100px">
+      <div *ngFor="let item of dataUrls">
+        <mat-grid-tile><img class="col-3" id="preview" *ngIf="dataUrls.length>0" style="height: 10em; width: 15em;" [src]="item" alt="Preview">
+    </mat-grid-tile>
+        </div>
+    </mat-grid-list>
+   
   <mat-card>
 
     <mat-card-actions>
@@ -22,6 +32,12 @@
          Thresold:  {{averageDistance}}
          
       </span>
+    </mat-card-actions>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-actions>
+      <button *ngIf="dataUrls.length>0" mat-raised-button color="primary" (click)="onAllUpload()">Retrain model</button>
     </mat-card-actions>
   </mat-card>
 
