@@ -37,7 +37,12 @@
 
   <mat-card>
     <mat-card-actions>
-      <button *ngIf="dataUrls.length>0" mat-raised-button color="primary" (click)="onAllUpload()">Retrain model</button>
+      <button [disabled]="retrain_spinner" *ngIf="dataUrls.length>0" mat-raised-button color="primary" (click)="onAllUpload()">Retrain model</button>
+      <mat-spinner *ngIf="retrain_spinner" diameter="30"></mat-spinner>
+      <br>
+         <span *ngIf="isSuccessfull" class="distance_green" style="margin-left:10px">
+             Model trained successfully!
+         </span>
     </mat-card-actions>
   </mat-card>
 

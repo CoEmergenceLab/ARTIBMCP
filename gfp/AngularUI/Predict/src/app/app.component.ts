@@ -28,9 +28,12 @@ export class AppComponent {
   distanceFromCluster = 0;
   averageDistance = 0;
   dataUrls: string[] = [];
+  retrain_spinner = false;
+  isSuccessfull = false;
   constructor(private http:HttpClient){}
 
   onFileSelected(event:Event) {
+    this.isSuccessfull = false;
     this.clusterId = -1;
     const input = event.target as HTMLInputElement;
     const file = input.files ? input.files[0] : null;
@@ -54,9 +57,12 @@ export class AppComponent {
   }
 
   onNewFileSelected(event:Event) {
+    this.isSuccessfull = false;
     this.clusterId = -1;
     this.imageSrc = null;
     this.imageName = null;
+    this.dataUrls =[];
+    this.selectedFiles=[];
     const input = event.target as HTMLInputElement;
     const files = input.files ? Array.from(input.files) : null;
     if (files) {
@@ -115,7 +121,7 @@ export class AppComponent {
     if (!this.selectedFiles || this.selectedFiles.length === 0) {
       return;
     }
-  
+  this.retrain_spinner=true
     this.uploading = true;
     const promises = [];
     for (const file of this.selectedFiles) {
@@ -139,17 +145,14 @@ export class AppComponent {
       };
       this.http.post('http://127.0.0.1:8002/retrain', payload).subscribe(
         (response: any) => {
-          console.log(response);
-          if (response) {
-            // this.clusterId = response.cluster;
-            // this.distanceFromCluster = response.img_dist;
-            // this.averageDistance = response.threshold;
-          }
+          this.retrain_spinner = false;
+          this.isSuccessfull = true;
         },
         (error) => {
           console.log(error);
         }
       );
+          
     });
   }
 }

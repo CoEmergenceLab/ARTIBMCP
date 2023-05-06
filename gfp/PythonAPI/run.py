@@ -22,25 +22,37 @@ app = Flask(__name__)
 CORS(app)
 
 # Load the machine learning model
-with open('kmodel-2.pkl', 'rb') as f:
+with open('../Models/kmodel.pkl', 'rb') as f:
     model = pickle.load(f)
 
-with open('pca-2.pkl', 'rb') as f:
+with open('../Models/pca.pkl', 'rb') as f:
     pca_model = pickle.load(f)
     
-with open('threshold.pkl', 'rb') as f:
+with open('../Models/threshold.pkl', 'rb') as f:
     threshold = pickle.load(f)
     
-with open('distances.pkl', 'rb') as f:
+with open('../Models/distances.pkl', 'rb') as f:
     distances = pickle.load(f)
 
-with open('memory_buffer.pkl', 'rb') as f:
+with open('../Models/memory_buffer.pkl', 'rb') as f:
     memory_buffer1 = pickle.load(f)
-
 
 # Define an endpoint for the model
 @app.route('/predict', methods=['POST'])
 def predict():
+    
+    with open('../Models/kmodel.pkl', 'rb') as f:
+        model = pickle.load(f)
+        
+    with open('../Models/threshold.pkl', 'rb') as f:
+        threshold = pickle.load(f)
+        
+    with open('../Models/distances.pkl', 'rb') as f:
+        distances = pickle.load(f)
+
+    with open('../Models/memory_buffer.pkl', 'rb') as f:
+        memory_buffer1 = pickle.load(f)
+        
    # Read the image parameter from the request body
     image_b64 = request.json['image']
     
@@ -75,6 +87,10 @@ def predict():
 
 def process_image(im):
     try:
+        
+        with open('../Models/pca.pkl', 'rb') as f:
+            pca_model = pickle.load(f)
+        
         # newsize = (224, 224)
         # img = im.resize(newsize)
         # # convert image to numpy array
@@ -127,6 +143,21 @@ def retrain_kmeans(kmeans, memory_buffer, new_data):
 
 @app.route('/retrain', methods=['POST'])
 def retrain():
+    with open('../Models/kmodel.pkl', 'rb') as f:
+        model = pickle.load(f)
+
+    with open('../Models/pca.pkl', 'rb') as f:
+        pca_model = pickle.load(f)
+        
+    with open('../Models/threshold.pkl', 'rb') as f:
+        threshold = pickle.load(f)
+        
+    with open('../Models/distances.pkl', 'rb') as f:
+        distances = pickle.load(f)
+
+    with open('../Models/memory_buffer.pkl', 'rb') as f:
+        memory_buffer1 = pickle.load(f)
+        
     # Read the images parameter from the request body
     images_b64 = request.json['images']
     
@@ -168,11 +199,11 @@ def retrain():
 
     # calculate the threshold as a multiple of the MAD
     threshold = 3 * mad
-    pickle.dump(kmeans, open('kmeans.pkl', 'wb'))
-    pickle.dump(memory_buffer, open('memory_buffer.pkl', 'wb'))
-    pickle.dump(threshold, open('threshold.pkl', 'wb'))
-    pickle.dump(distances, open('distances.pkl', 'wb'))
-    return "ok"
+    pickle.dump(kmeans, open('../Models/kmeans.pkl', 'wb'))
+    pickle.dump(memory_buffer, open('../Models/memory_buffer.pkl', 'wb'))
+    pickle.dump(threshold, open('../Models/threshold.pkl', 'wb'))
+    pickle.dump(distances, open('../Models/distances.pkl', 'wb'))
+    return {'status':"ok"}
 
 if __name__ == '__main__':
     app.run(port=8002)
