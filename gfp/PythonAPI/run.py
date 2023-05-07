@@ -206,4 +206,4 @@ def retrain():
     return {'status':"ok"}
 
 if __name__ == '__main__':
-    app.run(port=8002)
+     app.run(host='ec2-13-59-206-36.us-east-2.compute.amazonaws.com', port=8002)

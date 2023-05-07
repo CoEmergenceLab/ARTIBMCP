@@ -101,7 +101,7 @@ export class AppComponent {
       const payload = {
         image: imageData
       };
-      this.http.post('http://127.0.0.1:8002/predict', payload).subscribe(
+      this.http.post('http://ec2-13-59-206-36.us-east-2.compute.amazonaws.com:8002/predict', payload).subscribe(
         (response:any) => {
           console.log(response);
           if(response){
@@ -143,7 +143,7 @@ export class AppComponent {
       const payload = {
         images: imageDataArray
       };
-      this.http.post('http://127.0.0.1:8002/retrain', payload).subscribe(
+      this.http.post('http://ec2-13-59-206-36.us-east-2.compute.amazonaws.com:8002/retrain', payload).subscribe(
         (response: any) => {
           this.retrain_spinner = false;
           this.isSuccessfull = true;
